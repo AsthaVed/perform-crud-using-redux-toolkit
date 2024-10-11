@@ -1,35 +1,98 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import EditForm from "./EditForm";
+import Form from "./Form";
+import Notes from "./Notes";
+import {
+  EditNote as editTodoActionCreator,
+  selectTodoActionCreator
+} from "./Redux/CounterSlice";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const dispatch = useDispatch();
+  const [note, setNote] = useState({
+    title: "",
+    text: ""
+  });
+  const [isEditMode, setIsEditMode] = useState(false);
 
+  const notes = useSelector((state) => state.notes.notes);
+  const selectedTodoId = useSelector((state) => state.selectedTodo);
+
+  const selectedTodo =
+    (selectedTodoId && notes.find((todo) => todo.id === selectedTodoId)) ||
+    null;
+
+  const handleSelectTodo = (todoId) => {
+    dispatch(selectTodoActionCreator({ id: todoId }));
+  };
+
+  const setValues = () => {
+    setNote({
+      title: selectedTodo.title,
+      text: selectedTodo.text
+    });
+  };
+
+  const handleEdit = () => {
+    if (!selectedTodo) return;
+    setValues();
+  };
+
+  const handleUpdate = (e) => {
+    e.preventDefault();
+
+    if (!note.title || !note.text || !selectedTodoId) {
+      handleCancelUpdate();
+      return;
+    }
+
+    dispatch(
+      editTodoActionCreator({
+        id: selectedTodoId,
+        title: note.title,
+        text: note.text
+      })
+    );
+    setIsEditMode(false);
+    setNote({
+      title: "",
+      text: ""
+    });
+  };
+
+  const handleCancelUpdate = (e) => {
+    setIsEditMode(false);
+    setNote({
+      title: "",
+      text: ""
+    });
+  };
+
+  const handleChange = (event) => {
+    setNote({ ...note, [event.target.name]: event.target.value });
+  };
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App">
+      {isEditMode ? (
+        <EditForm
+          note={note}
+          setNote={setNote}
+          selectedTodo={selectedTodo}
+          isEditMode={isEditMode}
+          handleUpdate={handleUpdate}
+          handleCancelUpdate={handleCancelUpdate}
+          handleChange={handleChange}
+        />
+      ) : (
+        <Form />
+      )}
+      <Notes
+        notes={notes}
+        handleSelectTodo={handleSelectTodo}
+        handleEdit={handleEdit}
+        setIsEditMode={setIsEditMode}
+      />
+    </div>
+  );
 }
-
-export default App
