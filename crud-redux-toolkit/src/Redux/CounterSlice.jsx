@@ -1,4 +1,3 @@
-// learn
 import { createSlice, configureStore } from "@reduxjs/toolkit";
 import logger from "redux-logger";
 import { v4 as uuidv4 } from "uuid";
